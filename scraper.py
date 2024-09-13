@@ -135,7 +135,6 @@ async def main():
 
         if not departments:
             logging.info(f"No departments found")
-            break
 
         for department in departments:
             logging.info(f"Checking for new alerts for {department.name}...")
