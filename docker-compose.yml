@@ -1,0 +1,46 @@
+services:
+  portainer:
+    image: portainer/portainer-ce
+    ports:
+      - "9000"
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  db:
+    image: mysql:latest
+    env_file:
+      - .env
+    ports:
+      - "3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    env_file:
+      - .env
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    depends_on:
+      - db
+
+  app:
+    build: .
+    env_file:
+      - .env
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  portainer_data:
+  db_data:
