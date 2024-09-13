@@ -6,10 +6,9 @@ from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 
 MYSQL_ROOT_PASSWORD = os.getenv('MYSQL_ROOT_PASSWORD')
-DB_HOST = os.getenv('PMA_HOST')
 DB_NAME = os.getenv('MYSQL_DATABASE')
 
-DATABASE_URL = f'mysql+pymysql://root:{MYSQL_ROOT_PASSWORD}@{DB_HOST}:3306/{DB_NAME}'
+DATABASE_URL = f'mysql+pymysql://root:{MYSQL_ROOT_PASSWORD}@db:3306/{DB_NAME}'
 Base = declarative_base()
 
 
