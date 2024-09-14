@@ -1,13 +1,4 @@
 services:
-  portainer:
-    image: portainer/portainer-ce
-    ports:
-      - "9000:9000"
-    volumes:
-      - portainer_data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-
   db:
     image: mysql:latest
     env_file:
@@ -19,7 +10,7 @@ services:
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 5s
+      interval: 10s
       retries: 5
 
   phpmyadmin:
