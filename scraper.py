@@ -15,6 +15,7 @@ bot = Bot(token=os.getenv('TELEGRAM_TOKEN'))
 
 BASE_URL = os.getenv('BASE_URL')
 ALERT_CLASSES_IDENTIFIER = os.getenv("ALERT_CLASSES_IDENTIFIER")
+ATTACHMENTS_CLASSES_IDENTIFIER = os.getenv("ATTACHMENTS_CLASSES_IDENTIFIER")
 INTERVAL_SECONDS = int(os.getenv('INTERVAL_SECONDS'))
 MESSAGE_DELAY = int(os.getenv('MESSAGE_DELAY'))
 RETRY_ATTEMPTS = int(os.getenv('RETRY_ATTEMPTS'))
@@ -66,6 +67,17 @@ def scrape_alert_details(url: str):
         details_div = soup.find('div', class_=ALERT_CLASSES_IDENTIFIER)
         content = details_div.get_text(separator="\n", strip=True) if details_div else None
 
+        attachments_div = soup.find('div', class_=ATTACHMENTS_CLASSES_IDENTIFIER)
+        attachments = []
+        if attachments_div:
+            file_links = attachments_div.find_all('a')
+            for file_link in file_links:
+                attachment = {
+                    "filename": file_link.get_text(strip=True),
+                    "url": file_link['href']
+                }
+                attachments.append(attachment)
+
         if content is None and title is None:
             return None
 
@@ -78,9 +90,14 @@ def scrape_alert_details(url: str):
             message += f"📌 *{title}*\n\n"
 
         if content:
-            message += f"{content}"
+            message += f"{content}\n\n"
         else:
-            message += f"🔗 [Leggi di più]({url})"
+            message += f"🔗 [Leggi di più]({url})\n\n"
+
+        if attachments:
+            message += "📎 *Allegati:*\n"
+            for attachment in attachments:
+                message += f"- [{attachment['filename']}]({BASE_URL + attachment['url']})\n"
 
         return title, content, message
     else:
@@ -110,7 +127,7 @@ async def send_telegram_messages(alerts: List[Alert]):
                 alternative_message = f"📌 *{title}*\n\n🔗 [Leggi di più]({alert.link})"
                 try:
                     await bot.send_message(chat_id=alert.department.channel_id, text=alternative_message,
-                                     parse_mode='Markdown')
+                                           parse_mode='Markdown')
                     logging.info("Alternative message sent successfully for %s", alert.department_name)
 
                     session.commit()
